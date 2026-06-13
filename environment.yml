@@ -1,0 +1,17 @@
+name: btyi
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.14.6
+  - numpy
+  - pandas
+  - scikit-learn
+  - scipy
+  - pytorch
+  - torchvision
+  - torchaudio
+  - pytorch-cuda
+  - streamlit
