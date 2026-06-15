@@ -17,7 +17,8 @@ for i in range(1,11):
             with open(task_path, 'w+') as f:
                 f.write(f'''\
 import streamlit as st
-                        
+
+@st.fragment           
 def render():
     st.text("{week}/{task}")
 

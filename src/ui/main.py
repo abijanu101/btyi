@@ -6,7 +6,7 @@ import os
 
 # SIDEBAR NAVIGATION
 
-st.sidebar.title('🫥 this is *btyi*')
+st.sidebar.title('🐍 this is *btyi*')
 st.sidebar.text('better-than-your-internship')
 
 weeks = list(WK_METADATA.keys())

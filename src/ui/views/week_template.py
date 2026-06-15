@@ -1,7 +1,6 @@
 import streamlit as st
 
 import os
-import pathlib
 import importlib
 
 from src.config.paths import WK_CONTENTS_PATH

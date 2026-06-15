@@ -26,7 +26,7 @@ WK_METADATA = {
     "tasks": [
       {"type": "ST", "topics": "Beam Search Decoding and CTC"},
       {"type": "BEI", "topics": "GMM-HMM ASR using Beam Search Decoding"},
-      {"type": "BEI", "topics": "CTC"},
+      {"type": "ST", "topics": "CTC"},
       {"type": "BEI", "topics": "DNN-HMM ASR using CTC"},
       {"type": "EX", "topics": "Kaldi ASR"},
       {"type": "LR", "topics": "Kaldi-based ASR Models"},
