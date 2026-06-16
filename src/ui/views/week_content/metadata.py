@@ -3,7 +3,7 @@ WK_METADATA = {
     "theme": "Streamlit, PyTorch, Summarization, and NER",
     "tasks": [
       {"type": "EX", "topics": "Streamlit and Project Setup"},
-      {"type": "ST", "topics": "RNNs in PyTorch"},
+      {"type": "ST", "topics": "PyTorch"},
       {"type": "BEI", "topics": "Text Summarization using RNNs"},
       {"type": "BEI", "topics": "NER by Fine-tuning BERT"},
       {"type": "LR", "topics": "Advanced NER Techniques"},

@@ -66,3 +66,5 @@ streamlit run src/ui/main.py
                 
 So, all I need to do in the future is write my content in the respective ```week_WX/task_YZ.py``` file's ```render()``` function 
 ''')
+    
+    st.caption('Dated: 06/16/26', text_alignment='right')
