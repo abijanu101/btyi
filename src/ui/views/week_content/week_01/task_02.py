@@ -166,7 +166,12 @@ Overall, a pretty good video.
     #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     st.markdown('#### Ideas for the Future')
     st.markdown('''
-To close this off, I will just mention an idea that came to me regarding neural net training. 
+To close this off, I will just mention an idea that came to me regarding neural net training. I have found that \
+whenever I engage with neural models, I sometimes have reason to believe that the prior layers are not really changing all that much \
+and that the later layers are doing a lot of the heavy lifting. Learning about the ability to control if something is a trainable parameter or not with \
+```requires_grad```, I wondered what would happen if I froze later layers and only trained on the prior layers in the first half.
+                
+Today has already been an overtime day with over an extra hour than my planned time, so that's something for the future, but it does seem worth exploring.
 ''')
 
     st.caption('Dated: 06/17/26', text_alignment='right')

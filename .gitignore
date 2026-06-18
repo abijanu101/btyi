@@ -1,2 +1,9 @@
+# runtime shi
 __pycache__/
 .vscode/
+
+# datasets
+data/xsum
+
+# imported models
+models/pretrained
