@@ -3,7 +3,6 @@ import torch
 from abc import ABC, abstractmethod
 from typing import Tuple, List
 
-
 class TextEncoder(ABC):
     '''manages tokenization, control token insertion and replacement, and stoi encoding'''
     def __init__(self):

@@ -2,5 +2,5 @@ import streamlit as st
 
 @st.fragment           
 def render():
-    st.text("week_01/task_04")
+    st.text("Foregone for BEI: Text Summarizer.")
 

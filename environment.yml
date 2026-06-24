@@ -4,6 +4,7 @@ channels:
   - defaults
 dependencies:
   - ipykernel
+  - ipywidgets
   - python=3.14.6
   - numpy
   - pandas
@@ -18,4 +19,5 @@ dependencies:
     - torchaudio
     - torchvision
     - --extra-index-url https://download.pytorch.org/whl/cu126
+  - sacrebleu
   - streamlit
