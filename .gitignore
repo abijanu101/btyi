@@ -10,6 +10,7 @@ data/iq2_corpus
 data/tennis-corpus
 data/flattened_corpora.txt
 data/dia-merged.csv
+data/dia-merged2.parquet
 
 # imported models
 models/pretrained/glove.840B.300d.txt
