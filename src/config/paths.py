@@ -7,6 +7,9 @@ CONF_PATH = SRC_PATH.joinpath('config')
 # datasets
 DATA_PATH = ROOT_PATH.joinpath('data')
 XSUM_PATH = DATA_PATH.joinpath('xsum')
+SUPREME_PATH = DATA_PATH.joinpath('supreme-corpus')
+IQ2_PATH = DATA_PATH.joinpath('iq2_corpus')
+TENNIS_PATH = DATA_PATH.joinpath('tennis-corpus')
 
 # models
 MODELS_PATH = ROOT_PATH.joinpath('models')

@@ -4,6 +4,13 @@ __pycache__/
 
 # datasets
 data/xsum
+data/supreme-corpus
+data/iq2-corpus
+data/iq2_corpus
+data/tennis-corpus
+data/flattened_corpora.txt
+data/dia-merged.csv
 
 # imported models
-models/pretrained
+models/pretrained/glove.840B.300d.txt
+models/pretrained/glove.840B.300d.txt.pt
