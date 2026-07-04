@@ -14,6 +14,9 @@ data/dia-merged.csv
 data/dia-merged2.parquet
 data/dia-final.parquet
 
-# imported models
+# models
 models/pretrained/glove.840B.300d.txt
 models/pretrained/glove.840B.300d.txt.pt
+
+models/trained/lex/tokenizer/
+models/trained/lex/model.pt
