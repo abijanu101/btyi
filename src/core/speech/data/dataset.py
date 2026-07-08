@@ -10,6 +10,8 @@ from src.core.speech.data.preproc import log_mel_spectrogram, spec_augment
 
 
 class ASRDataset(torch.utils.data.Dataset):
+    'Has the potential to end the world if used improperly'
+    
     def __init__(self, df:pd.DataFrame, tokenize_fn:Callable, spec_augment_enabled:bool=True):
         self.df = df
         self.tokenize_fn = tokenize_fn

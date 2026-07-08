@@ -15,6 +15,15 @@ FM_P, FM_LIM = 0.01, 10         # upto 10 bands of frequencies
 TW_SCL_MIN, TW_SCL_RANGE = 1.25, 0.75       # [1.25, 2.00]
 TW_PIV_MIN, TW_PIV_RANGE = 1.50, 1.00       # [1.50, 2.50]
 
-# Tokenizer
+# Text
 N_VOCAB = 5_000                # i think going shorter than usual is good because ur getting really micro level inputs and u probably wont be getting whole ass words like that
 DISCARDED_SYMS = ":;,.'\"?-!؟:’۔‘،"
+
+# CTC Network
+CTC_IN_SIZE = N_MELS
+CTC_H_SIZE = 512
+CTC_N_LAYERS = 3
+CTC_DROPOUT = 0.1
+CTC_OUT_SIZE = N_VOCAB + 1
+
+BLANK_IDX = N_VOCAB

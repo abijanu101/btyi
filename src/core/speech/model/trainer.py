@@ -1,8 +1,11 @@
 import torch
 
-class ASRTrainer(torch.nn.Module):
-    def __init__(self):
-        pass
+from .asr import ASRModel
 
-    def forward(self, X):
+class ASRTrainer:
+    def __init__(self, model:ASRModel):
+        self.model = model
+        self.optim = torch.optim.AdamW(model.parameters())
+
+    def train(self, dl: torch.utils.data.DataLoader):
         pass
