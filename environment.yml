@@ -7,6 +7,7 @@ dependencies:
   - python=3.14.6
   - ipykernel
   - ipywidgets
+  - blas=*=openblas
 
   # ML ESSENTIALS
   - numpy
@@ -21,7 +22,13 @@ dependencies:
   - tokenizers
   - spacy       # TODO: Configure GPU Acceleration for this asw
   - sacrebleu
+
+  # SIGNAL PROCESSING
+  - librosa
   
+  # CV
+  - opencv
+
   # UI
   - streamlit  
   
@@ -37,3 +44,10 @@ dependencies:
 
     # NLP
     - wtpsplit
+
+    # SIGNAL PROCESSING
+    - sounddevice
+    - soundfile
+    - audiofile
+    - pyannote.audio
+    - silero_vad

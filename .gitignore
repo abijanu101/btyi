@@ -1,3 +1,6 @@
+# secrets
+src/config/secrets.py
+
 # runtime shi
 __pycache__/
 .vscode/
@@ -10,6 +13,10 @@ data/iq2_corpus
 data/tennis-corpus
 data/flattened_corpora.txt
 
+data/LibriSpeech
+data/mozilla-cv26-ur
+data/asr-bilingual
+
 data/dia-merged.csv
 data/dia-merged2.parquet
 data/dia-final.parquet
@@ -17,6 +24,7 @@ data/dia-final.parquet
 # models
 models/pretrained/glove.840B.300d.txt
 models/pretrained/glove.840B.300d.txt.pt
+models/pretrained/hf
 
-models/trained/lex/tokenizer/
+models/trained/lex/tokenizer
 models/trained/lex/model.pt
