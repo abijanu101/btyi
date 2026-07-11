@@ -1,9 +1,8 @@
 import numpy as np
-import librosa
 import cv2
 
-from typing import Iterable, Iterator, Tuple
-import src.config.asr as conf
+from typing import Iterator, Tuple
+import src.core.speech.config as conf
 
 def time_warp(log_mel:np.ndarray, low:int, high:int, scale_factor:float, pivot_ratio:float, squish_right:bool) -> np.ndarray:
     assert low >= 0 and low <= high

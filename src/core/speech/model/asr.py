@@ -1,31 +1,30 @@
 import torch
 
 from typing import Tuple, List, Iterable
-import src.config.asr as conf
+import src.core.speech.config as conf
 
 from .ctc import CTCNetwork
-from .transducer import ConformerEncoder, PredictionNetwork, JointNetwork
-from .lm import LanguageModel
+from .transducer import ConformerTransducer
+
 
 class ASRModel(torch.nn.Module):
     '''Orchestrates the actual model pipeline'''
 
     def __init__(self):
         super().__init__()
+       
         self.ctc = CTCNetwork()
-        self.conformer = ConformerEncoder()
-        self.prednet = PredictionNetwork()
-        self.jointnet = JointNetwork()
-        self.lm = LanguageModel()
+        self.transducer = ConformerTransducer()
 
         self.ctc_hidden = None
-
-    def forward(self, X, ctc_hidden:Tuple[torch.Tensor, torch.Tensor]|None = None):
-        if ctc_hidden is None:
-            ctc_hidden = self.ctc_hidden
-
-        y, self.ctc_hidden =  self.ctc(X, ctc_hidden)
-        return y.argmax(dim=2)
+        self.prednet_hidden = None
+        self.linknet_hidden = None
+        
+    def forward(self, X):  
+        # y = self.ctc(X, True)
+        y = self.transducer.conformer.subsampler(X)
+        
+        return y
                 
         # for now we only have it behave like a minimal CTC net wrapper
     
@@ -43,3 +42,27 @@ class ASRModel(torch.nn.Module):
                 result.append(i)
             prev = i
         return result
+    
+    def print_params(self) -> None:
+        params = {}
+        params['CTC Network'] = self._get_stats(self.ctc)
+        params['Conformer'] = self._get_stats(self.conformer)
+        params['Prediction Net'] = self._get_stats(self.prednet)
+        params['Link Network'] = self._get_stats(self.linknet)
+        params['Joint Network'] = self._get_stats(self.jointnet)
+
+        sum_n = 0 
+        sum_s = 0 
+
+        for k, (n, s) in params.items():
+            print(f'{k}\t {n/10**6:.2f}M  \t({s/2**20:.2f}MB) ')
+            sum_n += n
+            sum_s += s
+        print('--------------------------------------------------')
+        print(f'Total\t\t {sum_n/10**6:.2f}M  \t({sum_s/2**20:.2f}MB) ')
+
+    def _get_stats(self, model: torch.nn.Module) -> Tuple[int, int]:
+        n_params = sum(i.numel() for i in model.parameters())
+        s_params = sum(i.numel() * i.element_size() for i in model.parameters())
+
+        return n_params, s_params

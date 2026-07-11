@@ -3,7 +3,7 @@ import librosa
 
 from typing import Iterable
 
-import src.config.asr as conf
+import src.core.speech.config as conf
 from src.core.speech.data.transforms import apply_frequency_masking, apply_time_masking, apply_time_warping
 
 

@@ -4,8 +4,10 @@ import librosa
 import torch
 
 from typing import Iterable, List, Tuple, Callable
-from src.config.asr import SAMPLING_RATE
+
 from src.config.paths import CVUR_PATH, LIBRI_PATH
+from src.core.speech.config import SAMPLING_RATE
+
 from src.core.speech.data.preproc import log_mel_spectrogram, spec_augment
 
 

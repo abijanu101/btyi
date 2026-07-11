@@ -6,7 +6,7 @@ from tokenizers import ByteLevelBPETokenizer
 from typing import Iterable, List, Tuple, Callable
 
 from src.config.paths import BILINGUAL_PATH
-from src.config.asr import SAMPLING_RATE, N_VOCAB
+from src.core.speech.config import SAMPLING_RATE, N_VOCAB
 
 from .data import ASRDataset, collate_fn, log_mel_spectrogram
 from .model import ASRModel, ASRTrainer
@@ -31,9 +31,11 @@ class BiASR:
         ds = ASRDataset(df, self._tokenize, True)
         dl = torch.utils.data.DataLoader(ds, batch_size, shuffle=True, collate_fn=collate_fn)
 
-        for i in range(epochs):
-            for X, lens, y in dl:
-                print(self.model(X))
+        # for i in range(epochs):
+            # for X, lens, y in dl:
+        
+        X, senlen, y = next(dl.__iter__())
+        print(self.model(X))
 
 
     def train_round_robin(self, df1:pd.DataFrame, df2:pd.DataFrame, batch_size1:int, batch_size2:int, epochs:int):

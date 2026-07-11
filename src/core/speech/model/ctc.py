@@ -1,7 +1,6 @@
 import torch
-import src.config.asr as conf
-
 from typing import Tuple
+import src.core.speech.config as conf
 
 class CTCNetwork(torch.nn.Module):
     'First pass naive predictor for instant feedback'
@@ -23,7 +22,7 @@ class CTCNetwork(torch.nn.Module):
             bias=True
         )
 
-    def forward(self, X:torch.Tensor, hidden:Tuple[torch.Tensor, torch.Tensor]|None = None) -> Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    def forward(self, X:torch.Tensor, hidden:Tuple|None) -> torch.Tensor:
         '[Batch, Time, Mel bins] -> ([Batch, Time, Logits], (h_t, c_t))'
-        out, hidden = self.rnn(X, hidden)
-        return self.linear(out), hidden
+        o, hidden = self.rnn(X, hidden)
+        return self.linear(o), hidden
