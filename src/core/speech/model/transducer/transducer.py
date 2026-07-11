@@ -1,11 +1,15 @@
 import torch
 
+from typing import Tuple
+
+import src.core.speech.config as conf
+
 from .conformer import Encoder
 from .networks import PredictionNetwork, JointNetwork, LinkNetwork
 from .lm import LanguageModel
 
 class ConformerTransducer(torch.nn.Module):
-    ''
+    'An LM-Fused Conformer Transducer modified to incorporate outputs from the first pass model as input'
     
     def __init__(self):
         super().__init__()
@@ -15,8 +19,23 @@ class ConformerTransducer(torch.nn.Module):
         self.jointnet = JointNetwork()
         self.lm = LanguageModel()
         
-        self.prednet_hidden = None
-        self.linknet_hidden = None
+    def forward(
+            self, 
+            X:torch.Tensor, 
+            link_X:torch.Tensor,
+            last_out:torch.Tensor,      # (B,) index array
+            prednet_hidden: Tuple|None = None,
+            linknet_hidden: Tuple|None = None,
+        ) -> Tuple[torch.Tensor, Tuple, Tuple]:
+        'Returns (logits, prednet_hidden, linknet_hidden)'
 
-    def forward(self):
-        pass
+        if last_out is None:
+            last_out = conf.BLANK_IDX
+
+        f = self.conformer(X)
+        g, prednet_hidden = self.prednet(last_out, prednet_hidden)
+        h, linknet_hidden = self.linknet(link_X, linknet_hidden)
+
+        logits = self.jointnet(f,g,h)
+        return logits, prednet_hidden, linknet_hidden
+    

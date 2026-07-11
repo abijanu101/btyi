@@ -7,6 +7,7 @@ class ConvModule(torch.nn.Module):
         super().__init__()
         self.norm = torch.nn.LayerNorm(conf.CNF_D_MODEL)
         self.model = torch.nn.Sequential(
+            #(B, D, T)
             torch.nn.Conv1d(
                 in_channels=conf.CNF_D_MODEL,
                 out_channels=conf.CNF_CONV_N_FILTERS,
@@ -16,9 +17,11 @@ class ConvModule(torch.nn.Module):
                 groups=1,
                 padding_mode='zeros'
             ),
-            torch.nn.GLU(),
+            #(B, F, T)
+            torch.nn.GLU(dim=1),
+            #(B, F // 2, T)
             torch.nn.Conv1d(
-                in_channels=conf.CNF_CONV_N_FILTERS,
+                in_channels=conf.CNF_CONV_N_FILTERS // 2,
                 out_channels=conf.CNF_D_MODEL,
                 kernel_size=conf.CNF_CONV_KERNEL_SIZE,
                 stride=conf.CNF_CONV_STRIDE,
@@ -26,6 +29,7 @@ class ConvModule(torch.nn.Module):
                 groups=conf.CNF_D_MODEL,    # depthwise convolution
                 padding_mode='zeros'
             ),
+            #(B, D, T)
             torch.nn.BatchNorm1d(conf.CNF_D_MODEL),
             torch.nn.SiLU(),
             torch.nn.Conv1d(
@@ -41,6 +45,7 @@ class ConvModule(torch.nn.Module):
         )
 
 
-    def forward(self, X):
-        X = self.norm(X).transpose(1,2)
+    def forward(self, X:torch.Tensor) -> torch.Tensor:
+        '(B, T, D)'
+        X = self.norm(X).transpose(1,2)         # (B,D,T)
         return self.model(X).transpose(1,2)

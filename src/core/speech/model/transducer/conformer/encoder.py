@@ -17,10 +17,15 @@ class ConformerBlock(torch.nn.Module):
         self.norm = torch.nn.LayerNorm(conf.CNF_D_MODEL)
 
     def forward(self, X):
+        print('X: ', X.shape)
         X = self.ffnn1(X)
+        print('AFTER FFNN: ', X.shape)
         X = self.mhsa(X)
+        print('AFTER MHSA: ', X.shape)
         X = self.conv(X)
+        print('AFTER CONV: ', X.shape)
         X = self.ffnn2(X)
+        print('AFTER FFNN2: ', X.shape)
         return self.norm(X)
 
 class Encoder(torch.nn.Module):

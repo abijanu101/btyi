@@ -12,22 +12,17 @@ class ASRModel(torch.nn.Module):
 
     def __init__(self):
         super().__init__()
-       
         self.ctc = CTCNetwork()
         self.transducer = ConformerTransducer()
 
-        self.ctc_hidden = None
-        self.prednet_hidden = None
-        self.linknet_hidden = None
         
     def forward(self, X):  
-        # y = self.ctc(X, True)
-        y = self.transducer.conformer.subsampler(X)
+        y_1, ctc_hidden = self.ctc(X, None)
+        y_2, prednet_hidden, linknet_hidden = self.transducer.forward(X, y_1, torch.tensor([conf.BLANK_IDX for i in range(len(X))]))
         
-        return y
+        return y_2
                 
-        # for now we only have it behave like a minimal CTC net wrapper
-    
+                
     def _collapse(self, t: List[List[int]] | List[int], collapse_repeats:bool) -> List[List[int]] | List[int]:
         assert isinstance(t, List)
 
@@ -46,10 +41,10 @@ class ASRModel(torch.nn.Module):
     def print_params(self) -> None:
         params = {}
         params['CTC Network'] = self._get_stats(self.ctc)
-        params['Conformer'] = self._get_stats(self.conformer)
-        params['Prediction Net'] = self._get_stats(self.prednet)
-        params['Link Network'] = self._get_stats(self.linknet)
-        params['Joint Network'] = self._get_stats(self.jointnet)
+        params['Conformer'] = self._get_stats(self.transducer.conformer)
+        params['Prediction Net'] = self._get_stats(self.transducer.prednet)
+        params['Link Network'] = self._get_stats(self.transducer.linknet)
+        params['Joint Network'] = self._get_stats(self.transducer.jointnet)
 
         sum_n = 0 
         sum_s = 0 

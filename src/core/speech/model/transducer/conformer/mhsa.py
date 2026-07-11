@@ -10,13 +10,22 @@ class RSPE(torch.nn.Module):
         super().__init__()
         U, self.offset = self._generate()
         self.register_buffer('U', U)
+        self.last_fetched = None
+        self.last_l = None
 
     def fetch_slice(self, l:int) -> torch.Tensor:
         'Get a (T,T,d) matrix, R, that holds the relative positional encoding for i-j at R[i,j]'
+
+        if self.last_l and self.last_l == l:
+            return self.last_fetched
+
         distances = torch.arange(0, l)
         indices = self.offset + (distances[:, None] - distances[None, :])
-
-        return self.U[indices]
+        result = self.U[indices]
+        
+        self.last_fetched = result
+        self.last_l = l
+        return result
 
     def _generate(self) -> Tuple[torch.Tensor, int]:
         'Generates the Bidirectional Relative Sinusoidal Positional Encoding Table'
@@ -92,7 +101,7 @@ class SelfAttentionWithRSPE(torch.nn.Module):
         ).unsqueeze(0)
 
         scaled = (A + B + C + D) / math.sqrt(conf.CNF_MHSA_D_HEAD)        # (B, T, T)
-        return torch.softmax(scaled, dim=-1) @ V                            # (B, T, d)
+        return torch.softmax(scaled, dim=-1) @ V                          # (B, T, d)
         
 class MHSAModule(torch.nn.Module):
     'The Mult-head Self Attention Module for the Conformer as described in the original paper'

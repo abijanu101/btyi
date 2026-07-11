@@ -55,7 +55,7 @@ CNF_CONV_DROPOUT = 0.1
 
 # Everything Else in the 3-way joint Conformer-Transducer
 
-PRED_IN_RANGE = N_VOCAB   # never gets a blank as input
+PRED_IN_RANGE = N_VOCAB + 1  # gets a blank input at the start ONLY
 PRED_EMBEDDING_SIZE = 512
 PRED_H_SIZE = 256
 PRED_N_LAYERS = 3
