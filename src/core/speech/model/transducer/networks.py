@@ -8,22 +8,27 @@ class LinkNetwork(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
+        self.linear_in = torch.nn.Linear(
+            in_features=conf.LINK_IN_SIZE,
+            out_features=conf.LINK_PROJ_SIZE
+        )
         self.rnn = torch.nn.LSTM(
-            input_size=conf.LINK_IN_SIZE,
-            hidden_size=conf.LINK_H_SIZE,
+            input_size=conf.LINK_PROJ_SIZE,
+            hidden_size=conf.LINK_H_SIZE // 2,  # Bidir = True
             num_layers=conf.LINK_N_LAYERS,
             batch_first=True,
             dropout=conf.LINK_DROPOUT,
             bidirectional=conf.LINK_BIDIRECTIONAL
         )
-        self.linear = torch.nn.Linear(
+        self.linear_out = torch.nn.Linear(
             in_features=conf.LINK_H_SIZE,
             out_features=conf.LINK_OUT_SIZE
         )
 
     def forward(self, X:torch.Tensor, hidden:Tuple|None) -> Tuple[torch.Tensor, Tuple]:
-        o, hidden = self.rnn(X, hidden)
-        return self.linear(o), hidden
+        proj = self.linear_in(X)
+        o, hidden = self.rnn(proj, hidden)
+        return self.linear_out(o), hidden
 
 
 class PredictionNetwork(torch.nn.Module):

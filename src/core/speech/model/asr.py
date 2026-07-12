@@ -6,7 +6,6 @@ import src.core.speech.config as conf
 from .ctc import CTCNetwork
 from .transducer import ConformerTransducer
 
-
 class ASRModel(torch.nn.Module):
     '''Orchestrates the actual model pipeline'''
 
@@ -18,9 +17,11 @@ class ASRModel(torch.nn.Module):
         
     def forward(self, X):  
         y_1, ctc_hidden = self.ctc(X, None)
-        y_2, prednet_hidden, linknet_hidden = self.transducer.forward(X, y_1, torch.tensor([conf.BLANK_IDX for i in range(len(X))]))
+        y_2, prednet_hidden, linknet_hidden = self.transducer.forward(
+            X, y_1, torch.tensor([conf.BLANK_IDX for i in range(len(X))])
+        )
         
-        return y_2
+        return y_1
                 
                 
     def _collapse(self, t: List[List[int]] | List[int], collapse_repeats:bool) -> List[List[int]] | List[int]:

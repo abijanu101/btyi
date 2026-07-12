@@ -16,12 +16,12 @@ TW_SCL_MIN, TW_SCL_RANGE = 1.25, 0.75       # [1.25, 2.00]
 TW_PIV_MIN, TW_PIV_RANGE = 1.50, 1.00       # [1.50, 2.50]
 
 # Text
-N_VOCAB = 5_000                # i think going shorter than usual is good because ur getting really micro level inputs and u probably wont be getting whole ass words like that
+N_VOCAB = 2_000                # i think going shorter than usual is good because ur getting really micro level inputs and u probably wont be getting whole ass words like that
 DISCARDED_SYMS = ":;,.'\"?-!؟:’۔‘،"
 
 # CTC Network
 CTC_IN_SIZE = N_MELS
-CTC_H_SIZE = 512
+CTC_H_SIZE = 256
 CTC_N_LAYERS = 3
 CTC_OUT_SIZE = N_VOCAB + 1
 CTC_DROPOUT = 0.1
@@ -41,7 +41,7 @@ SUBSAMPLER_STRIDE = 2
 SUBSAMPLER_PAD = 1
 
 CNF_MHSA_D_HEAD = 128
-CNF_MHSA_N_HEADS = 8
+CNF_MHSA_N_HEADS = 5
 
 CNF_CONV_N_FILTERS = 2 * CNF_D_MODEL
 CNF_CONV_KERNEL_SIZE = 31
@@ -58,12 +58,13 @@ CNF_CONV_DROPOUT = 0.1
 PRED_IN_RANGE = N_VOCAB + 1  # gets a blank input at the start ONLY
 PRED_EMBEDDING_SIZE = 512
 PRED_H_SIZE = 256
-PRED_N_LAYERS = 3
+PRED_N_LAYERS = 2
 PRED_OUT_SIZE = 512
 PRED_DROPOUT = 0
 PRED_BIDIRECTIONAL = False
 
 LINK_IN_SIZE = N_VOCAB + 1
+LINK_PROJ_SIZE = 64
 LINK_H_SIZE = 256
 LINK_N_LAYERS = 1
 LINK_OUT_SIZE = 512

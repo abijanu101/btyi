@@ -31,6 +31,7 @@ class BiASR:
         ds = ASRDataset(df, self._tokenize, True)
         dl = torch.utils.data.DataLoader(ds, batch_size, shuffle=True, collate_fn=collate_fn)
 
+        print('Dataloader instantiated')
         # for i in range(epochs):
             # for X, lens, y in dl:
         
