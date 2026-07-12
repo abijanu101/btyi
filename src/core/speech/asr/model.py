@@ -21,7 +21,7 @@ class ASRModel(torch.nn.Module):
             X, y_1, torch.tensor([conf.BLANK_IDX for i in range(len(X))])
         )
         
-        return y_1
+        return y_2
                 
                 
     def _collapse(self, t: List[List[int]] | List[int], collapse_repeats:bool) -> List[List[int]] | List[int]:

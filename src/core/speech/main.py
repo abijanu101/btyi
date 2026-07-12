@@ -9,7 +9,7 @@ from src.config.paths import BILINGUAL_PATH
 from src.core.speech.config import SAMPLING_RATE, N_VOCAB
 
 from .data import ASRDataset, collate_fn, log_mel_spectrogram
-from .model import ASRModel, ASRTrainer
+from .asr import ASRModel, ASRTrainer
 
 class BiASR:
     'This Urdu-English ASR System is Bisexual'

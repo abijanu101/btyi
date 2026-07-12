@@ -1,6 +1,6 @@
 import torch
 
-from .asr import ASRModel
+from .model import ASRModel
 
 class ASRTrainer:
     def __init__(self, model:ASRModel):
