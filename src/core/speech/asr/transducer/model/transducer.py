@@ -35,10 +35,9 @@ class ConformerTransducer(torch.nn.Module):
     def link(
             self,
             X:torch.Tensor,
-            hidden:LSTMState|None
-        ) -> Tuple[torch.Tensor, LSTMState]:
+        ) -> torch.Tensor:
         'Takes in CTC Logits, Returns the LinkNetwork Output'
-        return self.linknet(X, hidden)
+        return self.linknet(X)
 
     def join(
             self,

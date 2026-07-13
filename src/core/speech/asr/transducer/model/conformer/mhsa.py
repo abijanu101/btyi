@@ -89,10 +89,12 @@ class SelfAttentionWithRSPE(torch.nn.Module):
         
     def _relative_shift(self, BD_tilde_pos:torch.Tensor, BD_tilde_neg:torch.Tensor) -> torch.Tensor:
         'A modification of the method described in Appendix B of the TXL Paper to support bidirectional attention'
+        DEVICE = next(self.parameters()).device
+
         # input shape is (B, T, T)
         B, T, _ = BD_tilde_neg.shape
         
-        idx = torch.arange(T)
+        idx = torch.arange(T, device=DEVICE)
 
         q = idx[:, None]
         k = idx[None, :]

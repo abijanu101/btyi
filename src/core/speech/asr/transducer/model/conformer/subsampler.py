@@ -1,4 +1,5 @@
 import torch
+import math
 
 from typing import List
 import src.core.speech.config as conf
@@ -11,40 +12,41 @@ class Subsampler(torch.nn.Module):
         self.convs = torch.nn.Sequential(
             torch.nn.Conv2d(
                 in_channels=1,
-                out_channels=conf.SUBSAMPLER_N_FILTERS,
-                kernel_size=conf.SUBSAMPLER_KERNEL_SIZE,
-                stride=conf.SUBSAMPLER_STRIDE,
-                padding=conf.SUBSAMPLER_PAD,
+                out_channels=conf.CNF_SUBSAMPLER_N_FILTERS,
+                kernel_size=conf.CNF_SUBSAMPLER_KERNEL_SIZE,
+                stride=conf.CNF_SUBSAMPLER_STRIDE,
+                padding=conf.CNF_SUBSAMPLER_PAD,
                 padding_mode='replicate'
             ), 
             torch.nn.Conv2d(
-                in_channels=conf.SUBSAMPLER_N_FILTERS,
-                out_channels=conf.SUBSAMPLER_N_FILTERS,
-                kernel_size=conf.SUBSAMPLER_KERNEL_SIZE,
-                stride=conf.SUBSAMPLER_STRIDE,
-                padding=conf.SUBSAMPLER_PAD,
+                in_channels=conf.CNF_SUBSAMPLER_N_FILTERS,
+                out_channels=conf.CNF_SUBSAMPLER_N_FILTERS,
+                kernel_size=conf.CNF_SUBSAMPLER_KERNEL_SIZE,
+                stride=conf.CNF_SUBSAMPLER_STRIDE,
+                padding=conf.CNF_SUBSAMPLER_PAD,
                 padding_mode='replicate'
             )
         )
 
-       # rn we got (B, C, T/4, Mel/4)
-       # permute in forward pass to go to (B, T/4, C, Mel/4) for convenient flattening
+       # rn we got (B, C, T/4, d/4)
+       # permute in forward pass to go to (B, T/4, C, d/4) for convenient flattening
 
         self.project = torch.nn.Sequential(
-            torch.nn.Flatten(2), # (B, T/4, _)
+            torch.nn.Flatten(2), # (B, d/4, _)
             torch.nn.Linear(
-                in_features=conf.N_MELS // 4 * conf.SUBSAMPLER_N_FILTERS,
+                in_features=math.ceil(conf.N_MELS / 4) * conf.CNF_SUBSAMPLER_N_FILTERS,
                 out_features=conf.CNF_D_MODEL
             ), 
-            torch.nn.Dropout(conf.SUBSAMPLER_PROJ_DROPOUT)
+            torch.nn.Dropout(conf.CNF_SUBSAMPLER_PROJ_DROPOUT)
         )
         
 
     def forward(self, X:torch.Tensor):
-        'Expects X to be shape (B, T, Mel)'
-        X = X.unsqueeze(1)  # conv expects (B, C, X, Y)
-        subsampled = torch.permute(self.convs(X), (0,2,1,3))
-        return self.project(subsampled)
+        'Expects X to be shape (B, T, self.last_dim_size)'
+        X = X.unsqueeze(1)                          # conv expects (B, C, T, d)
+        X = self.convs(X)                           # (B, N, T/4, d/4)
+        subsampled = torch.permute(X, (0,2,1,3))    # (B, T/4, N, d/4)
+        return self.project(subsampled)             # (B, T/4, N * d/4)
     
 
     def shrinked_lengths(seqlens: List[int]) -> List[int]:

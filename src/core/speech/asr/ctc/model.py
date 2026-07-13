@@ -26,13 +26,6 @@ class CTCNetwork(torch.nn.Module):
 
     def forward(self, X:torch.Tensor, hidden:Tuple|None) -> torch.Tensor:
         '[Batch, Time, Mel bins] -> ([Batch, Time, Logits], (h_t, c_t))'
-        print('X shape Originally:', X.shape)
-
-        st = time.time()
         o, hidden = self.rnn(X, hidden)
         result = self.linear(o)
-        ed = time.time()
-        print('CTC Completion Time:', ed - st)
-
-
         return result, hidden

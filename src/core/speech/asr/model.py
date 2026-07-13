@@ -16,23 +16,19 @@ class ASRModel(torch.nn.Module):
         super().__init__()
         self.ctc = CTCNetwork()
         self.ctc_greedy = CTCNetworkGreedyDecoder(self.ctc)
-        self.ctc_trainer = CTCTrainer()
 
         self.transducer = ConformerTransducer()
         self.transducer_greedy = ConformerTransducerGreedyDecoder(self.transducer)
         self.transducer_beam = ConformerTransducerBeamSearchDecoder(self.transducer)
-        self.transducer_trainer = TransducerTrainer()
         
 
-    def forward(self, X):  
+    def predict(self, X):
+        'For Realtime Predictions'
         
-        pass
-
-
+        
     def _collapse(self, t: List[List[int]] | List[int], collapse_repeats:bool) -> List[List[int]] | List[int]:
         assert isinstance(t, List)
 
-        # for batching
         if len(t) and isinstance(t[0], List):
             return [self._collapse(i, collapse_repeats) for i in t]
         
@@ -44,7 +40,7 @@ class ASRModel(torch.nn.Module):
             prev = i
         return result
     
-    
+
     def print_params(self) -> None:
         params = {}
         params['CTC Network'] = self._get_stats(self.ctc)
@@ -62,7 +58,6 @@ class ASRModel(torch.nn.Module):
             sum_s += s
         print('--------------------------------------------------')
         print(f'Total\t\t {sum_n/10**6:.2f}M  \t({sum_s/2**20:.2f}MB) ')
-
     def _get_stats(self, model: torch.nn.Module) -> Tuple[int, int]:
         n_params = sum(i.numel() for i in model.parameters())
         s_params = sum(i.numel() * i.element_size() for i in model.parameters())

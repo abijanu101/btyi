@@ -50,12 +50,16 @@ class ASRDataset(torch.utils.data.Dataset):
         return len(self.df)
 
 
-def collate_fn(batch: Iterable[Tuple[np.ndarray, List]]) -> Tuple[torch.Tensor, List[int], List[List[int]]]:
+def collate_fn(batch: Iterable[Tuple[np.ndarray, List]]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     log_mels, transcripts = zip(*batch)
-    input_lengths = [len(i) for i in log_mels]
-    
+    input_lengths = torch.tensor([len(i[0]) for i in log_mels])
+    transcript_lengths = torch.tensor([len(i) for i in transcripts])
+
     # transposing because pad sequence applies padding at first non batch axis, and its currently (Mel, T) - lowkey no reason to go back cuz (T, Mel) makes more sense
     log_mels = [torch.tensor(i).T for i in log_mels]
     log_mels = torch.nn.utils.rnn.pad_sequence(log_mels, batch_first=True)
 
-    return log_mels, input_lengths, transcripts
+    transcripts = [torch.tensor(i) for i in transcripts]
+    transcripts = torch.nn.utils.rnn.pad_sequence(transcripts, batch_first=True)
+
+    return log_mels, transcripts, input_lengths, transcript_lengths
