@@ -1,4 +1,5 @@
 from .model import CTCNetwork
-from .decoder import CTCNetworkDecoder
+from .train import CTCTrainer
+from .decoder import CTCNetworkGreedyDecoder
 
-__all__ = ['CTCNetwork', 'CTCNetworkDecoder']
+__all__ = ['CTCNetwork', 'CTCTrainer', 'CTCNetworkGreedyDecoder']

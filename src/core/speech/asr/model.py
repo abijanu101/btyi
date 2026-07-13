@@ -3,8 +3,11 @@ import torch
 from typing import Tuple, List, Iterable
 import src.core.speech.config as conf
 
-from .ctc import CTCNetwork
-from .transducer import ConformerTransducer
+from .ctc import CTCNetwork, CTCTrainer, CTCNetworkGreedyDecoder
+from .transducer import (
+    ConformerTransducer, TransducerTrainer,
+    ConformerTransducerGreedyDecoder, ConformerTransducerBeamSearchDecoder
+)
 
 class ASRModel(torch.nn.Module):
     '''Orchestrates the actual model pipeline'''
@@ -12,18 +15,20 @@ class ASRModel(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.ctc = CTCNetwork()
-        self.transducer = ConformerTransducer()
+        self.ctc_greedy = CTCNetworkGreedyDecoder(self.ctc)
+        self.ctc_trainer = CTCTrainer()
 
+        self.transducer = ConformerTransducer()
+        self.transducer_greedy = ConformerTransducerGreedyDecoder(self.transducer)
+        self.transducer_beam = ConformerTransducerBeamSearchDecoder(self.transducer)
+        self.transducer_trainer = TransducerTrainer()
         
+
     def forward(self, X):  
-        y_1, ctc_hidden = self.ctc(X, None)
-        y_2, prednet_hidden, linknet_hidden = self.transducer.forward(
-            X, y_1, torch.tensor([conf.BLANK_IDX for i in range(len(X))])
-        )
         
-        return y_2
-                
-                
+        pass
+
+
     def _collapse(self, t: List[List[int]] | List[int], collapse_repeats:bool) -> List[List[int]] | List[int]:
         assert isinstance(t, List)
 
@@ -38,6 +43,7 @@ class ASRModel(torch.nn.Module):
                 result.append(i)
             prev = i
         return result
+    
     
     def print_params(self) -> None:
         params = {}

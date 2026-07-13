@@ -1,3 +1,3 @@
-from .main import BiASR
+from .system import BiASR
 
 __all__ = ['BiASR']
