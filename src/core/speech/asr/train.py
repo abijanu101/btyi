@@ -20,7 +20,7 @@ class ASRTrainer:
         self.transducer_trainer.zero_grad()
         
         ctc_loss, ctc_logprobs = self.ctc_trainer.forward(X, y, len_x, len_y)
-        transducer_loss, transducer_logits = self.transducer_trainer.forward(X, y, ctc_logprobs, len_x, len_y)
+        transducer_loss = self.transducer_trainer.forward(X, y, ctc_logprobs, len_x, len_y)
 
         loss = (
             conf.JOINTLOSS_CTC_FACTOR * ctc_loss +
@@ -49,7 +49,7 @@ class ASRTrainer:
     
     def step_transducer(self, X: torch.Tensor, y_ctc:torch.Tensor, y:torch.Tensor, len_x:torch.Tensor, len_y:torch.Tensor) -> None:
         self.transducer_trainer.zero_grad()
-        loss, logprobs = self.transducer_trainer.forward(X, y, y_ctc, len_x, len_y)
+        loss = self.transducer_trainer.forward(X, y, y_ctc, len_x, len_y)
         loss.backward()
         self.transducer_trainer.step()
         print('Transducer:\t', loss)

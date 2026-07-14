@@ -17,72 +17,79 @@ class RNNTLoss:
             len_x:torch.Tensor,         # (B,)
             len_y:torch.Tensor          # (B,)
         ) -> torch.Tensor:
-        'The forward pass from the RNN-T forward-backward algorithm, but for Batched Samples'
+        'The forward pass from the RNN-T forward-backward algorithm'
         DEVICE = next(self.model.parameters()).device
 
+        B = X.shape[0]
+        prednet_in = torch.cat([
+            torch.tensor([conf.BLANK_IDX] * B, device=DEVICE).unsqueeze(1),
+            y
+        ], dim=1)
+
         f = self.model.encode(X)
-        g = self.model.predict(y)               # teacher forcing
+        g, _ = self.model.predict(prednet_in, None)
         h = self.model.link(y_ctc)
 
         f, g, h = self.model.project(f, g, h)   # (B,D) -> (B, V+1)
 
-        B = X.shape[0]
-        T = torch.ceil(len_x / 4).max()         # This makes it match the subsampling the encoder does
-        U = len_y.max()
+        T = int(torch.ceil(len_x / 4).max().item())     # match the subsampling in the Encoder and LinkNet
+        U = y.shape[1]
 
         alpha = torch.zeros(
-            B,      # Batched Alphas
-            U + 1,  # u: Tokens Generated
-            T + 1,   # +1 for terminal state
+            B,          # Batched Alphas
+            U + 1,      # u: Tokens Generated
+            T + 1,      # +1 for terminal state
             device=DEVICE
         )
     
         alpha[:, 0, 0] = 1
-        # The First U anti-diagonals that include the left most column's entries (excluding the base case u=0, t=0)
-        for i in range(1, U+1):
-            for j in range(i+1):
+        # The First U anti-diagonals that include the left most column's entries 
+        # (excluding the base case and the primary anti-diagonal)
+        for i in range(1, U):
+            for j in range(min(i+1, T+1)):
                 u, t = i-j, j
-                alpha[:, u][:, t] = self._alpha(u,t, alpha, y, f,g,h)
-        
-        # The remaining T anti-diagonals that include the top most row's entries (excluding the primary anti-diagoanal)        
-        for i in range(1, T+1):
+                alpha[:, u][:, t] = self._alpha(u,t, U,T, alpha, y, f,g,h)
+
+        # The remaining T anti-diagonals that include the top most row's entries        
+        for i in range(T+1):
             u, t = U, i
             while t <= T and u >= 0:
-                alpha[:, u][:, t] = self._alpha(u,t, alpha, y, f,g,h)
+                alpha[:, u][:, t] = self._alpha(u,t, U,T, alpha, y, f,g,h)
                 t += 1
                 u -= 1
 
-        terminals = alpha.gather(
-            1,
-            len_y.view(-1, 1, -1)
-        ).squeeze(1)
-        terminals = alpha.gather(
-            1,
-            len_x.view(-1, 1)
-        ).squeeze(1)
-        
-        losses = terminals
+        losses = -alpha[:, U, T].mean()
         return losses
 
     def _alpha(
             self,
             u:int, t:int,
+            U:int, T:int,
             alpha:torch.Tensor,
             y:torch.Tensor,
             f:torch.Tensor, g:torch.Tensor, h:torch.Tensor
         ) -> torch.Tensor | int:
         '''The recurrence'''
-        
-        joined = f[:, t] + g[:, u] + h[:, t]
-        y_hat = torch.softmax(joined, dim=-1)   # (B, V+1)
 
-        blank_probs = y_hat[:, conf.BLANK_IDX]  # (B,)
+        # for term 1
+        blank_probs = None          # if not left most
+        if t != 0:                  
+            joined = f[:, t-1] + g[:, u] + h[:, t-1]
+            y_hat = torch.softmax(joined, dim=-1)   # (B, V+1)
+            
+            blank_probs = y_hat[:, conf.BLANK_IDX]  # (B,)
 
-        labels = y[:, u].unsqueeze(1)           # (B, 1)
-        label_probs = y_hat.gather(
-            dim=1,
-            index=labels
-        ).squeeze(1)                            # (B,)
+        # for term 2
+        label_probs = None          # if not Terminal State, not bottom row, not top row
+        if u > 0 and u != U and t != T:
+            joined = f[:, t] + g[:, u - 1] + h[:, t]
+            y_hat = torch.softmax(joined, dim=-1)   # (B, V+1)
+
+            labels = y[:, u-1].unsqueeze(1)           # (B, 1)
+            label_probs = y_hat.gather(
+                dim=1,
+                index=labels
+            ).squeeze(1)                            # (B,)
 
         return (
             # blank term
@@ -91,7 +98,7 @@ class RNNTLoss:
                 alpha[:, u][:, t-1] *
                 # probability of emiting blank
                 blank_probs
-            ) if t != 0 else 0
+            ) if blank_probs is not None else 0
             +
             # generation term 
             (
@@ -99,5 +106,5 @@ class RNNTLoss:
                 alpha[:, u-1][:, t] *
                 # probability of having emitted the u-th token
                 label_probs
-            ) if u != 0 else 0
+            ) if label_probs is not None else 0
         )
