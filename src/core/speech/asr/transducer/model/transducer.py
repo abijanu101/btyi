@@ -39,7 +39,7 @@ class ConformerTransducer(torch.nn.Module):
         'Takes in CTC Logits, Returns the LinkNetwork Output'
         return self.linknet(X)
 
-    def join(
+    def project(
             self,
             f:torch.Tensor,
             g:torch.Tensor,
@@ -48,4 +48,3 @@ class ConformerTransducer(torch.nn.Module):
         'Takes in the outputs of the Encoder, PredNet, and LinkNet; Returns the JointNetwork Output'
         X = torch.cat([f,g,h], dim=-1)
         return self.jointnet(X)
-

@@ -76,9 +76,9 @@ class JointNetwork(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.f_project = torch.nn.Linear(conf.CNF_OUT_SIZE, conf.JOINT_OUT_SIZE)
-        self.g_project = torch.nn.Linear(conf.PRED_OUT_SIZE, conf.JOINT_OUT_SIZE)
-        self.h_project = torch.nn.Linear(conf.LINK_OUT_SIZE, conf.JOINT_OUT_SIZE)
+        self.project_f = torch.nn.Linear(conf.CNF_OUT_SIZE, conf.JOINT_OUT_SIZE)
+        self.project_g = torch.nn.Linear(conf.PRED_OUT_SIZE, conf.JOINT_OUT_SIZE)
+        self.project_h = torch.nn.Linear(conf.LINK_OUT_SIZE, conf.JOINT_OUT_SIZE)
 
     def forward(
             self,
@@ -89,7 +89,7 @@ class JointNetwork(torch.nn.Module):
         'Expects shape (B, D)'
 
         return (
-            self.f_project(f),
-            self.g_project(g), 
-            self.h_project(h)
+            self.project_f(f),
+            self.project_g(g), 
+            self.project_h(h)
         )
