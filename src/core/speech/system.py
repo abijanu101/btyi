@@ -5,7 +5,7 @@ import torch
 from tokenizers import ByteLevelBPETokenizer
 from typing import Iterable, List, Tuple, Callable
 
-from src.config.paths import BILINGUAL_PATH
+from src.config.paths import BILINGUAL_PATH, TRAINED_PATH
 from src.core.speech.config import SAMPLING_RATE, N_VOCAB
 
 from .data import ASRDataset, collate_fn, log_mel_spectrogram
@@ -22,10 +22,9 @@ class BiASR:
         )
         self.model = ASRModel().to('cuda')
         self.trainer = ASRTrainer(self.model)
-        self.n_steps = 0
 
 
-    def train_single(self, df:pd.DataFrame, batch_size:int, epochs:int, end_to_end:bool = True):
+    def train_single(self, df:pd.DataFrame, batch_size:int, epochs:int, end_to_end:bool = True) -> None:
         'Train on a single corpus'
         DEVICE = next(self.model.parameters()).device
         self.model.train()
@@ -34,17 +33,28 @@ class BiASR:
         dl = torch.utils.data.DataLoader(ds, batch_size, shuffle=True, collate_fn=collate_fn)
 
         for i in range(epochs):
-            print(f'[Epoch {i}/{epochs}]  ({self.n_steps} Steps in Total)')
+            print(f'[Epoch {i}/{epochs}]')
+            j = 0
             for X, y, len_x, len_y in dl:
                 X = X.to(DEVICE)
                 y = y.to(DEVICE)
                 len_x = len_x.to(DEVICE)
                 len_y = len_y.to(DEVICE)
 
+                j+=1
+                print(j, end=': ' if end_to_end else ':\n')
                 self.trainer.step_together(X, y, len_x, len_y) if end_to_end else self.trainer.step_both(X, y, len_x, len_y)
-                self.n_steps += 1
 
-    def train_round_robin(self, df1:pd.DataFrame, df2:pd.DataFrame, batch_size1:int, batch_size2:int, n_steps:int, end_to_end:bool = True):
+                if j % 10 == 0:
+                    self.save()
+                
+
+    def train_round_robin(
+            self,
+            df1:pd.DataFrame, df2:pd.DataFrame,
+            batch_size1:int, batch_size2:int, 
+            n_steps:int, end_to_end:bool = True
+        ) -> None:
         'Train on two corpora, drawing one batch from df1 and another from df2'
         DEVICE = next(self.model.parameters()).device
         self.model.train()
@@ -64,7 +74,7 @@ class BiASR:
         len_y:List[int]
 
         for i in range(n_steps):
-            print(f'[{i}/{n_steps} Steps] - ({self.n_steps} Steps in Total)')            
+            print(f'[{i}/{n_steps} Steps]')            
             try:
                 X, y, len_x, len_y = next(iters[i % 2])
             except StopIteration:
@@ -76,10 +86,12 @@ class BiASR:
             len_x = len_x.to(DEVICE)
             len_y = len_y.to(DEVICE)
             
+            print(i+1, end=': ' if end_to_end else ':\n')
             self.trainer.step_together(X, y, len_x, len_y) if end_to_end else self.trainer.step_both(X, y, len_x, len_y)
-            self.n_steps += 1
+            if (i+1) % 10 == 0:
+                self.save()
 
-
+    @torch.no_grad
     def evaluate(self, df:pd.DataFrame, batch_size:int):
         'Evaluate WER on a provided corpus'
         DEVICE = next(self.model.parameters()).device
@@ -95,11 +107,37 @@ class BiASR:
 
     def save(self):
         'Save model state'
+        root_dir = TRAINED_PATH / 'asr'
+        tokenizer_dir = root_dir / 'tokenizer'
+        tokenizer_dir.mkdir(parents=True, exist_ok=True)
 
+        self.tokenizer.save_model(str(tokenizer_dir))
+        torch.save(
+            {
+                'model': self.model.state_dict(),
+                'ctc optim': self.trainer.ctc_trainer.optim.state_dict(),
+                'transducer optim': self.trainer.transducer_trainer.optim.state_dict(),
+            },
+            str(root_dir / 'model.pt')
+        )
+
+        print('Saved Successfully.')
 
     def load(self):
         'Load from presaved'
+        root_dir = TRAINED_PATH / 'asr'
+        tokenizer_dir = root_dir / 'tokenizer'
 
+        self.tokenizer = ByteLevelBPETokenizer.from_file(
+            str(tokenizer_dir / 'vocab.json'), str(tokenizer_dir / 'merges.txt')
+        )
+        checkpoint = torch.load(str(root_dir / 'model.pt'))
+
+        self.model.load_state_dict(checkpoint['model'])
+        self.trainer.ctc_trainer.optim.load_state_dict(checkpoint['ctc optim'])
+        self.trainer.transducer_trainer.optim.load_state_dict(checkpoint['transducer optim'])
+
+        print('Loaded Successfully.')
 
     def _tokenize(self, text:str):
         return self.tokenizer.encode(text).ids

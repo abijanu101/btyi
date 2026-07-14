@@ -26,5 +26,5 @@ models/pretrained/glove.840B.300d.txt
 models/pretrained/glove.840B.300d.txt.pt
 models/pretrained/hf
 
-models/trained/lex/tokenizer
-models/trained/lex/model.pt
+models/trained/lex
+models/trained/asr

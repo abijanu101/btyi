@@ -53,4 +53,3 @@ class ASRTrainer:
         loss.backward()
         self.transducer_trainer.step()
         print('Transducer:\t', loss)
-    
