@@ -1,15 +1,15 @@
-import numpy as np
-import pandas as pd
 import torch
+import sounddevice
+import pandas as pd
 
-from tokenizers import ByteLevelBPETokenizer
+from tokenizers import ByteLevelBPETokenizer, InputSequence
 from typing import Iterable, List, Tuple, Callable
 
 from src.config.paths import BILINGUAL_PATH, TRAINED_PATH
-from src.core.speech.config import SAMPLING_RATE, N_VOCAB
 
 from .data import ASRDataset, collate_fn, log_mel_spectrogram
-from .asr import ASRModel, ASRTrainer
+from .asr import ASRModel, ASRTrainer, StreamingDecoder
+from .config import N_VOCAB, SAMPLING_RATE, STREAM_CHUNK_SAMPLES, STREAM_CHUNK_DURATION
 
 class BiASR:
     'This Urdu-English ASR System is Bisexual'
@@ -18,11 +18,42 @@ class BiASR:
         self.tokenizer = ByteLevelBPETokenizer()
         self.tokenizer.train(
             files=[(BILINGUAL_PATH / 'flattend_corpora.txt').__str__()],
-            vocab_size= N_VOCAB
+            vocab_size= N_VOCAB,
         )
         self.model = ASRModel().to('cuda')
         self.trainer = ASRTrainer(self.model)
 
+    # @torch.no_grad
+    def stream(self, dur_limit:int|None = 60, sentinel_phrase:str|None = "bye gang"):
+        'Start streaming ASR system'
+        assert dur_limit is None or dur_limit > 0
+        assert sentinel_phrase is None or isinstance(sentinel_phrase, str) and sentinel_phrase != ""
+
+        if sentinel_phrase:
+            sentinel_phrase = sentinel_phrase.lower()
+
+        stream = sounddevice.InputStream(
+            samplerate=SAMPLING_RATE,
+            blocksize=STREAM_CHUNK_SAMPLES,
+            channels=1  # Mono only
+        )
+
+        decoder = StreamingDecoder(self.model)
+
+        dur_elapsed = 0
+        stream.start()
+        while dur_limit is None or dur_elapsed < dur_limit:
+            X, _ = stream.read(STREAM_CHUNK_SAMPLES)
+            X = X[:, 0]             # Mono Channel
+            
+            X = log_mel_spectrogram(X, SAMPLING_RATE).T
+            y = decoder.decode(X)
+            y = self.tokenizer.decode(y)
+
+            print(y, end='')
+
+            dur_elapsed += STREAM_CHUNK_DURATION
+        stream.stop()
 
     def train_single(self, df:pd.DataFrame, batch_size:int, epochs:int, end_to_end:bool = True) -> None:
         'Train on a single corpus'
@@ -47,7 +78,7 @@ class BiASR:
 
                 if j % 10 == 0:
                     self.save()
-                
+        self.save()
 
     def train_round_robin(
             self,
@@ -74,7 +105,7 @@ class BiASR:
         len_y:List[int]
 
         for i in range(n_steps):
-            print(f'[{i}/{n_steps} Steps]')            
+            print(f'[{i+1}/{n_steps} steps,  df{i%2 + 1}] ', end='' if end_to_end else '\n')            
             try:
                 X, y, len_x, len_y = next(iters[i % 2])
             except StopIteration:
@@ -86,10 +117,11 @@ class BiASR:
             len_x = len_x.to(DEVICE)
             len_y = len_y.to(DEVICE)
             
-            print(i+1, end=': ' if end_to_end else ':\n')
             self.trainer.step_together(X, y, len_x, len_y) if end_to_end else self.trainer.step_both(X, y, len_x, len_y)
             if (i+1) % 10 == 0:
                 self.save()
+        self.save()
+
 
     @torch.no_grad
     def evaluate(self, df:pd.DataFrame, batch_size:int):
@@ -99,10 +131,6 @@ class BiASR:
 
         ds = ASRDataset(df, self._tokenize, False)  # no spec aug
         dl = torch.utils.data.DataLoader(ds, batch_size, shuffle=True, collate_fn=collate_fn)
-
-
-    def start(self):
-        'Start streaming ASR system'
 
 
     def save(self):
@@ -138,6 +166,7 @@ class BiASR:
         self.trainer.transducer_trainer.optim.load_state_dict(checkpoint['transducer optim'])
 
         print('Loaded Successfully.')
+
 
     def _tokenize(self, text:str):
         return self.tokenizer.encode(text).ids
