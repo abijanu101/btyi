@@ -12,14 +12,25 @@ class ConformerTransducerBeamSearchDecoder:
     def __init__(self, model:ConformerTransducer):
         self.model = model
 
-    def decode(self, X:torch.Tensor, y_ctc: torch.Tensor) -> List[List[int]]:
+    def decode(
+            self,
+            X:torch.Tensor,
+            ctc_logprobs:torch.Tensor,
+            last_y:torch.Tensor,
+            prednet_hidden:torch.Tensor|None
+        ) -> List[List[int]]:
+        'You will NEVER guess what this does... it applies a standard beam search decoding algorithm.'
+
         t = 0   # encoder timestep
         u = 0   # otuput length
 
         completed = []
         queue = []
-        
-        f = self.model.encode(X)
 
+        print(X.shape, ctc_logprobs.shape, prednet_hidden.shape if prednet_hidden is not None else None)
+
+        raise NotImplementedError()
+        # f = self.model.encode(X)
+        # h = self.model.encode(prednet_hidden)
 
         pass

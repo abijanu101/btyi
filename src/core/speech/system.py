@@ -9,7 +9,7 @@ from src.config.paths import BILINGUAL_PATH, TRAINED_PATH
 
 from .data import ASRDataset, collate_fn, log_mel_spectrogram
 from .asr import ASRModel, ASRTrainer, StreamingDecoder
-from .config import N_VOCAB, SAMPLING_RATE, STREAM_CHUNK_SAMPLES, STREAM_CHUNK_DURATION
+from .config import N_VOCAB, SAMPLING_RATE, STREAM_CHUNK_FRAMES, STREAM_CHUNK_DURATION
 
 class BiASR:
     'This Urdu-English ASR System is Bisexual'
@@ -24,7 +24,7 @@ class BiASR:
         self.trainer = ASRTrainer(self.model)
 
     # @torch.no_grad
-    def stream(self, dur_limit:int|None = 60, sentinel_phrase:str|None = "bye gang"):
+    def stream(self, dur_limit:int|None, sentinel_phrase:str|None = "bye gang"):
         'Start streaming ASR system'
         assert dur_limit is None or dur_limit > 0
         assert sentinel_phrase is None or isinstance(sentinel_phrase, str) and sentinel_phrase != ""
@@ -34,7 +34,7 @@ class BiASR:
 
         stream = sounddevice.InputStream(
             samplerate=SAMPLING_RATE,
-            blocksize=STREAM_CHUNK_SAMPLES,
+            blocksize=STREAM_CHUNK_FRAMES,
             channels=1  # Mono only
         )
 
@@ -43,11 +43,11 @@ class BiASR:
         dur_elapsed = 0
         stream.start()
         while dur_limit is None or dur_elapsed < dur_limit:
-            X, _ = stream.read(STREAM_CHUNK_SAMPLES)
-            X = X[:, 0]             # Mono Channel
+            X, _ = stream.read(STREAM_CHUNK_FRAMES)
+            X = X.flatten()     # Mono Channel
             
             X = log_mel_spectrogram(X, SAMPLING_RATE).T
-            y = decoder.decode(X)
+            y, second_pass_invoked = decoder.decode(X)
             y = self.tokenizer.decode(y)
 
             print(y, end='')

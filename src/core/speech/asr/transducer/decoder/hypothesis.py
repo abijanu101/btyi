@@ -1,4 +1,4 @@
-import heapq
+
 import torch
 
 import src.core.speech.config as conf
@@ -18,8 +18,9 @@ class Hypothesis:
             score:float = 0.0,  # log probability of hypothesis
 
             pred_hidden:LSTMState|None = None,
-            link_hidden:LSTMState|None = None,
         ):
+        'Scores Expected to be in Log-space'
+
         self.idx = idx
         self.t = t
         self.u = u
@@ -28,13 +29,12 @@ class Hypothesis:
         self.score = score
         
         self.pred_hidden = pred_hidden
-        self.link_hidden = link_hidden
+
 
     def extend(
             self,
             logprobs:torch.Tensor,
-            pred_hidden:LSTMState,
-            link_hidden:LSTMState
+            pred_hidden:LSTMState
         ) -> List[Hypothesis]:
         'Produces all possible hypothesis extensions'
         return [
@@ -44,7 +44,7 @@ class Hypothesis:
                 self.u + 1,
                 self.tokens + [token],
                 self.score + score.item(),
-                pred_hidden, link_hidden
+                pred_hidden
             )
             if token != conf.BLANK_IDX else
             Hypothesis(
@@ -53,10 +53,11 @@ class Hypothesis:
                 self.u,
                 self.tokens,
                 self.score + score.item(),
-                pred_hidden, link_hidden
+                self.pred_hidden    # old pred hidden, no prednet step when only t increases
             )
             for token, score in enumerate(logprobs)
         ]
+
 
     def __gt__(self, other) -> bool:
         return self.score > other.score
