@@ -3,7 +3,7 @@ import sacrebleu
 
 from src.config.paths import TRAINED_PATH
 from src.core.text.vocab import SEUPGloVeFactory
-from src.core.models.rnn.seq2seq import SEUPSeq2Seq
+from src.core.text.models.rnn.seq2seq import SEUPSeq2Seq
 
 from typing import List, Iterable, Callable
 
