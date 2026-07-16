@@ -23,15 +23,15 @@ class BiASR:
         self.model = ASRModel().to('cuda')
         self.trainer = ASRTrainer(self.model)
 
-    # @torch.no_grad
+    @torch.no_grad
     def stream(self, dur_limit:int|None, sentinel_phrase:str|None = "bye gang"):
         'Start streaming ASR system'
         assert dur_limit is None or dur_limit > 0
         assert sentinel_phrase is None or isinstance(sentinel_phrase, str) and sentinel_phrase != ""
 
         if sentinel_phrase:
-            sentinel_phrase = sentinel_phrase.lower()
-
+            sentinel_phrase = self.tokenizer.encode(sentinel_phrase.lower())
+        
         stream = sounddevice.InputStream(
             samplerate=SAMPLING_RATE,
             blocksize=STREAM_CHUNK_FRAMES,
@@ -43,14 +43,17 @@ class BiASR:
         dur_elapsed = 0
         stream.start()
         while dur_limit is None or dur_elapsed < dur_limit:
-            X, _ = stream.read(STREAM_CHUNK_FRAMES)
-            X = X.flatten()     # Mono Channel
+            raw, _ = stream.read(STREAM_CHUNK_FRAMES)
+            raw = raw.flatten()     # Mono Channel
             
-            X = log_mel_spectrogram(X, SAMPLING_RATE).T
+            X = log_mel_spectrogram(raw, SAMPLING_RATE).T
             y, second_pass_invoked = decoder.decode(X)
             y = self.tokenizer.decode(y)
 
-            print(y, end='')
+            if second_pass_invoked:
+                print('Refined:\t', y)
+            else:
+                print('Rough:\t', y)
 
             dur_elapsed += STREAM_CHUNK_DURATION
         stream.stop()

@@ -10,60 +10,58 @@ LSTMState = Tuple[torch.Tensor, torch.Tensor]
 class Hypothesis:
     def __init__(
             self,
-            idx:int,
-            t:int,
-            u:int,
+            t:int, u:int,
 
             tokens:List[int],
-            score:float = 0.0,  # log probability of hypothesis
+            score:float,            # log probability of hypothesis
 
-            pred_hidden:LSTMState|None = None,
+            hidden:LSTMState|None = None
         ):
         'Scores Expected to be in Log-space'
-
-        self.idx = idx
         self.t = t
         self.u = u
 
         self.tokens = tokens
         self.score = score
         
-        self.pred_hidden = pred_hidden
-
+        self.hidden = hidden
 
     def extend(
             self,
             logprobs:torch.Tensor,
-            pred_hidden:LSTMState
+            new_hidden:LSTMState
         ) -> List[Hypothesis]:
         'Produces all possible hypothesis extensions'
+
+        top_k = logprobs.topk(conf.BEAM_WIDTH)  # will never need to explore beyond beam width
+        indices = top_k.indices.squeeze(0)
+        values = top_k.values.squeeze(0)
+
         return [
             Hypothesis(
-                self.idx, 
                 self.t, 
                 self.u + 1,
-                self.tokens + [token],
+                self.tokens + [token.item()],
                 self.score + score.item(),
-                pred_hidden
+                new_hidden
             )
-            if token != conf.BLANK_IDX else
+            if token.item() != conf.BLANK_IDX else
             Hypothesis(
-                self.idx, 
                 self.t + 1, 
                 self.u,
                 self.tokens,
                 self.score + score.item(),
-                self.pred_hidden    # old pred hidden, no prednet step when only t increases
+                self.hidden    # old pred hidden, no prednet step when only t increases
             )
-            for token, score in enumerate(logprobs)
+            for token, score in zip(indices, values)
         ]
-
 
     def __gt__(self, other) -> bool:
         return self.score > other.score
     def __lt__(self, other) -> bool:
         return self.score < other.score
-    # i probably wont be needing __eq__
-      
+    def __eq__(self, other) -> bool:
+        return self.score == other.score
+
     def __hash__(self) -> int:
-        return hash(tuple([self.t, self.u, self.idx] + self.tokens))
+        return hash(tuple([self.t, self.u] + self.tokens))

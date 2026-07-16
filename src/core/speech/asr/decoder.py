@@ -29,7 +29,6 @@ class StreamingDecoder:
 
         self.transcription = []
 
-
     def get_transcription(self) -> List[int]:
         'get the complete transcription'
         return self.transcription
@@ -41,7 +40,6 @@ class StreamingDecoder:
 
     def decode(self, X:np.ndarray) -> Tuple[List[int], bool]:
         '''Uses the ASR Model to generate trnascriptions, returns True at index 1 if Second Pass was invoked'''
-
         ctc_out = self._first_pass(X)
         if self.max_blank_count < conf.SWITCH_THRESHOLD:
             return ctc_out, False
@@ -53,7 +51,7 @@ class StreamingDecoder:
     
     def _first_pass(self, X:np.ndarray) -> List[int]:
         'Returns the collapsed CTCnet output. Also maintains the (B,T,M) input and (B,T,V+1) logprob tensors'
-        
+
         X = torch.tensor(X, device=self.device).unsqueeze(0)    # (B, T, M)
         y, self.ctc_hidden = self.ctc_greedy.decode(X, self.ctc_hidden)
         collapsed = self._ctc_collapse(y, True)
@@ -64,22 +62,19 @@ class StreamingDecoder:
             self.ctc_buffer = torch.cat([self.ctc_buffer, y], dim=1)
         else:
             self.X_buffer = X
-            self.ctc_buffer = y
-
+            self.ctc_buffer = y        
         return collapsed
 
 
     def _second_pass(self) -> List[int]:
         'Consumes the Buffers Populated by the First Pass iterations to produce a more refined transcription'
-        
-        y, self.transducer_hidden = self.transducer_beam.decode(
+
+        collapsed, self.transducer_hidden = self.transducer_beam.decode(
             X=self.X_buffer,
             ctc_logprobs=self.ctc_buffer,
             last_y=self.transcription[-1] if self.transcription else conf.BLANK_IDX,
             prednet_hidden=self.transducer_hidden
         )
-        
-        collapsed = [tkn for tkn in y if tkn != conf.BLANK_IDX]
         
         # Buffer Management
         self.X_buffer = None

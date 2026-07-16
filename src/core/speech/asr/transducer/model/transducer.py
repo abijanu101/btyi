@@ -47,3 +47,21 @@ class ConformerTransducer(torch.nn.Module):
         ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         'Takes in the outputs of the Encoder, PredNet, and LinkNet; Returns the JointNetwork Output'
         return self.jointnet(f,g,h)
+
+    def project_f(
+            self,
+            f:torch.Tensor,
+        ) -> torch.Tensor:
+        return self.jointnet.project_f(f)
+
+    def project_g(
+            self,
+            g:torch.Tensor,
+        ) -> torch.Tensor:
+        return self.jointnet.project_g(g)
+
+    def project_h(
+            self,
+            h:torch.Tensor,
+        ) -> torch.Tensor:
+        return self.jointnet.project_h(h)
