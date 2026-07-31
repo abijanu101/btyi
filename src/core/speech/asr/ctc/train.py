@@ -9,7 +9,7 @@ class CTCTrainer:
     def __init__(self, model:CTCNetwork):
         self.model = model
         self.loss = torch.nn.CTCLoss(conf.BLANK_IDX)
-        self.optim = torch.optim.AdamW(self.model.parameters())
+        self.optim = torch.optim.AdamW(self.model.parameters(), lr=conf.LR_CTC)
 
     def forward(
             self,

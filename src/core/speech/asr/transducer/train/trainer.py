@@ -10,7 +10,7 @@ from typing import Tuple
 class TransducerTrainer:
     def __init__(self, model:ConformerTransducer):
         self.loss_fn = RNNTLoss(model)
-        self.optim = torch.optim.AdamW(model.parameters())
+        self.optim = torch.optim.AdamW(model.parameters(), conf.LR_TRANSDUCER)
 
     def forward(
             self,

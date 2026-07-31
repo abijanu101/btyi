@@ -25,6 +25,8 @@ DISCARDED_SYMS = ":;,.'\"?-!؟:’۔‘،"
 JOINTLOSS_CTC_FACTOR = 0.3
 JOINTLOSS_TRANSDUCER_FACTOR = 1 - JOINTLOSS_CTC_FACTOR
 
+LR_CTC = 0.000035
+LR_TRANSDUCER = 0.000035
 
 # Streaming Config
 STREAM_CHUNK_DURATION = 0.250                               # 250ms windows at a time  

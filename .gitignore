@@ -17,6 +17,8 @@ data/LibriSpeech
 data/mozilla-cv26-ur
 data/asr-bilingual
 
+data/MOT17
+
 data/dia-merged.csv
 data/dia-merged2.parquet
 data/dia-final.parquet
@@ -28,3 +30,4 @@ models/pretrained/hf
 
 models/trained/lex
 models/trained/asr
+models/trained/asr (old)

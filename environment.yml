@@ -28,6 +28,7 @@ dependencies:
   
   # CV
   - opencv
+  - fvcore
 
   # UI
   - streamlit  
@@ -51,3 +52,6 @@ dependencies:
     - audiofile
     - pyannote.audio
     - silero_vad
+
+    # MISC.
+    - datasets

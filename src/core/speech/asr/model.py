@@ -3,24 +3,15 @@ import torch
 from typing import Tuple, List, Iterable
 import src.core.speech.config as conf
 
-from .ctc import CTCNetwork, CTCTrainer, CTCNetworkGreedyDecoder
-from .transducer import (
-    ConformerTransducer, TransducerTrainer,
-    ConformerTransducerGreedyDecoder, ConformerTransducerBeamSearchDecoder
-)
-
+from .ctc import CTCNetwork
+from .transducer import ConformerTransducer
 class ASRModel(torch.nn.Module):
     '''Orchestrates the actual model pipeline'''
 
     def __init__(self):
         super().__init__()
         self.ctc = CTCNetwork()
-
         self.transducer = ConformerTransducer()
-        
-
-    def predict(self, X):
-        'For Realtime Predictions'
         
 
 

@@ -79,7 +79,7 @@ class BiASR:
                 print(j, end=': ' if end_to_end else ':\n')
                 self.trainer.step_together(X, y, len_x, len_y) if end_to_end else self.trainer.step_both(X, y, len_x, len_y)
 
-                if j % 10 == 0:
+                if j % 5 == 0:
                     self.save()
         self.save()
 
